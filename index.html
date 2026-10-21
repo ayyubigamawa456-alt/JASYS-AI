@@ -1,68 +1,125 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-  <meta charset="utf-8" />
-  <title>PWA Starter</title>
-
-  <base href="/" />
-
-  <!-- This meta viewport ensures the webpage's dimensions change according to the device it's on. This is called Responsive Web Design.-->
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-  <meta name="description" content="This is a PWA Starter app" />
-
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#181818" />
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f3f3" />
-
-  <!-- These meta tags are Apple-specific, and set the web application to run in full-screen mode with a black status bar. Learn more at https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="PWA Starter" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-
-  <!-- This tag is used by the PWA Starter CLI to identify template projects. Don't remove if you are using the CLI. -->
-  <meta name="pwa-starter-template-identity" content="pwa-starter" />
-
-  <!-- Imports an icon to represent the document. -->
-  <link rel="icon" href="/assets/icons/icon_24.png" type="image/png" />
-
-  <!-- Imports the manifest to represent the web application. A web app must have a manifest to be a PWA. -->
-  <link rel="manifest" href="manifest.json" />
-
-  <!-- Web Awesome global styles / theme -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.10.0/dist/styles/webawesome.css" />
-  <link rel="stylesheet" href="global.css" />
-
-
-  <!-- Web Awesome uses class-based color schemes. Track the OS preference. -->
-  <script>
-    (() => {
-      const root = document.documentElement;
-      const media = window.matchMedia('(prefers-color-scheme: dark)');
-      const applyScheme = (isDark) => {
-        root.classList.toggle('wa-dark', isDark);
-        root.classList.toggle('wa-light', !isDark);
-      };
-      applyScheme(media.matches);
-      media.addEventListener('change', (event) => applyScheme(event.matches));
-    })();
-  </script>
-
-  <script type="module" src="/src/app-index.ts"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JASYS AI - Photo Version</title>
+<style>
+body{margin:0;font-family:system-ui;background:#020617;color:#fff;display:flex;flex-direction:column;height:100vh}
+#head{background:#0f172a;padding:14px;text-align:center}
+#head b{color:#38bdf8}
+#setup{background:#1e293b;padding:8px;display:flex;gap:6px}
+#setup input{flex:1;padding:10px;border-radius:8px;border:none}
+#chat{flex:1;overflow-y:auto;padding:12px}
+.m{padding:10px 14px;border-radius:16px;margin:6px 0;max-width:85%;white-space:pre-wrap;overflow-wrap:anywhere}
+.user{background:#2563eb;margin-left:auto}
+.ai{background:#1e293b;border:1px solid #334155}
+.m img{max-width:100%;border-radius:12px;margin-top:8px;display:block}
+#box{display:flex;padding:10px;background:#0f172a;gap:6px;align-items:center}
+#q{flex:1;min-width:0;padding:12px;border-radius:20px;border:none;background:#1e293b;color:#fff}
+button{padding:10px 14px;border-radius:20px;border:none;background:#38bdf8;font-weight:bold;cursor:pointer}
+#file{display:none}
+@media(max-width:420px){#box{gap:4px;padding:8px}button{padding:10px}#q{padding:10px}}
+</style>
 </head>
-
 <body>
-  <!-- Our app-index web component. This component is defined in src/pages/app-index.ts-->
-  <app-index></app-index>
+<div id="head"><b>JASYS AI PHOTO</b><br><small>Producer: Jaafar Abdurrahman Saleh - Photos Allowed</small></div>
+<div id="setup"><input id="api" type="password" placeholder="Paste Groq API key"><button onclick="saveKey()">Save</button></div>
+<div id="chat"><div class="m ai">Now I can see photos! Tap 📷 to select a photo, type a question, then tap Send.</div></div>
+<div id="box">
+<label for="file" style="background:#334155;padding:10px 12px;border-radius:20px;cursor:pointer" aria-label="Choose photo">📷</label>
+<input id="file" type="file" accept="image/*">
+<input id="q" placeholder="Ask about photo..." autocomplete="off">
+<button id="send">Send</button>
+</div>
+<script>
+const chat=document.getElementById('chat');
+const q=document.getElementById('q');
+const api=document.getElementById('api');
+const fileInput=document.getElementById('file');
+let selectedImageBase64=null;
+api.value=localStorage.getItem('groq_key')||'';
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.onload = () => {
-        navigator.serviceWorker.register(
-          '/sw.js'
-        );
-      }
+function saveKey(){
+  const key=api.value.trim();
+  if(!key){alert('Please paste your Groq API key first.');return;}
+  localStorage.setItem('groq_key',key);
+  alert('API key saved in this browser on this device.');
+}
+function add(t,c,imgSrc){
+  const d=document.createElement('div');
+  d.className='m '+c;
+  d.textContent=t;
+  if(imgSrc){
+    const im=document.createElement('img');
+    im.src=imgSrc;
+    im.alt='Selected photo';
+    d.appendChild(im);
+  }
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+  return d;
+}
+fileInput.onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  if(!file.type.startsWith('image/')){alert('Please choose an image file.');fileInput.value='';return;}
+  if(file.size>10*1024*1024){alert('Please choose an image smaller than 10 MB.');fileInput.value='';return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    selectedImageBase64=ev.target.result;
+    add('Photo selected (will be sent with your next message)','user',selectedImageBase64);
+  };
+  reader.readAsDataURL(file);
+};
+async function send(){
+  const text=q.value.trim();
+  const key=localStorage.getItem('groq_key');
+  if(!text&&!selectedImageBase64)return;
+  if(!key){alert('Paste your Groq API key and tap Save first.');return;}
+  const imageToSend=selectedImageBase64;
+  const prompt=text||(imageToSend?'What is in this photo?':'');
+  if(!prompt)return;
+  add(prompt,'user',imageToSend);
+  q.value='';
+  const bot=add(imageToSend?'Analyzing photo...':'Thinking...','ai');
+  document.getElementById('send').disabled=true;
+  try{
+    const modelName=imageToSend?'meta-llama/llama-4-scout-17b-16e-instruct':'openai/gpt-oss-120b';
+    const systemPrompt=`You are JASYS AI.
+Identity: You are JASYS AI, an AI application produced by Jaafar Abdurrahman Saleh from Kaduna, Nigeria.
+If the user asks who produced, made, created, owns, developed, or built this application, answer exactly: "The name of this application producer is Jaafar Abdurrahman Saleh"
+For other questions, answer normally. You can analyze photos when one is provided.`;
+    const userContent=imageToSend?[
+      {type:'text',text:prompt},
+      {type:'image_url',image_url:{url:imageToSend}}
+    ]:prompt;
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({
+        model:modelName,
+        messages:[{role:'system',content:systemPrompt},{role:'user',content:userContent}],
+        max_completion_tokens:2048
+      })
+    });
+    const data=await res.json();
+    if(!res.ok||data.error){
+      bot.textContent='Error: '+(data.error?.message||('HTTP '+res.status+'. Check your API key, model access, and internet connection.'));
+      return;
     }
-  </script>
+    bot.textContent=data.choices?.[0]?.message?.content||'No response received. Please try again.';
+  }catch(e){
+    bot.textContent='Connection error: '+e.message+'. Check your internet connection and try again.';
+  }finally{
+    selectedImageBase64=null;
+    fileInput.value='';
+    document.getElementById('send').disabled=false;
+    q.focus();
+  }
+}
+document.getElementById('send').onclick=send;
+q.addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+</script>
 </body>
-
 </html>
