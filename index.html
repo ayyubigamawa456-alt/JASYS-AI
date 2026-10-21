@@ -47,7 +47,7 @@ async function go(){
  chat.innerHTML+=`<div class="msg user">${t}</div>`;
  q.value=""; let d=document.createElement('div'); d.className='msg ai'; d.innerText='Thinking...'; chat.appendChild(d); chat.scrollTop=chat.scrollHeight;
  try{
-  let m="IIama/IIama-4-scout-17b-16e-instrucy
+  let m=llama-3.1-8b-instant in august 2026
   let msgs=[{role:"system",content:"You are JASYS AI by Jaafar Abdurrahman Saleh, Kaduna. If asked who is producer say: The name of this application producer is Jaafar Abdurrahman Saleh"}];
   if(img){ m="meta-llama/llama-4-scout-17b-16e-instruct"; msgs.push({role:"user",content:[{type:"text",text:t},{type:"image_url",image_url:{url:img}}]}); }
   else{ msgs.push({role:"user",content:t}); }
