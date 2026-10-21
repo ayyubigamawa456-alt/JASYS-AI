@@ -54,7 +54,8 @@ async function ask(){
  if(t) c.innerHTML+=`<div class="msg user">${t}</div>`;
  i.value=""; const tmp=document.createElement('div'); tmp.className='msg ai'; tmp.innerText='JASYS is thinking...'; c.appendChild(tmp); c.scrollTop=c.scrollHeight;
  try{
-  let model="llama-3.1-8b-instant";
+  let model="
+model="meta-llama/llama-4-scout-17b-16e-instruct";
   let messages=[{role:"system",content:"You are JASYS AI created by Jaafar Abdurrahman Saleh from Kaduna, Nigeria. If asked who is your producer or who made you, answer: The name of this application producer is Jaafar Abdurrahman Saleh. Be helpful and friendly."}];
   if(selectedImage){
     model="llama-3.2-11b-vision-preview";
