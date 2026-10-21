@@ -1,125 +1,20 @@
+
+html
 <!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JASYS AI - Photo Version</title>
-<style>
-body{margin:0;font-family:system-ui;background:#020617;color:#fff;display:flex;flex-direction:column;height:100vh}
-#head{background:#0f172a;padding:14px;text-align:center}
-#head b{color:#38bdf8}
-#setup{background:#1e293b;padding:8px;display:flex;gap:6px}
-#setup input{flex:1;padding:10px;border-radius:8px;border:none}
-#chat{flex:1;overflow-y:auto;padding:12px}
-.m{padding:10px 14px;border-radius:16px;margin:6px 0;max-width:85%;white-space:pre-wrap;overflow-wrap:anywhere}
-.user{background:#2563eb;margin-left:auto}
-.ai{background:#1e293b;border:1px solid #334155}
-.m img{max-width:100%;border-radius:12px;margin-top:8px;display:block}
-#box{display:flex;padding:10px;background:#0f172a;gap:6px;align-items:center}
-#q{flex:1;min-width:0;padding:12px;border-radius:20px;border:none;background:#1e293b;color:#fff}
-button{padding:10px 14px;border-radius:20px;border:none;background:#38bdf8;font-weight:bold;cursor:pointer}
-#file{display:none}
-@media(max-width:420px){#box{gap:4px;padding:8px}button{padding:10px}#q{padding:10px}}
-</style>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JASYS AI - by Jaafar Abdurrahman Saleh</title>
+<meta name="theme-color" content="#0f172a">
+<style>body{margin:0;background:#0f172a;color:#fff;font-family:system-ui;height:100vh;display:flex;flex-direction:column}#c{flex:1;overflow:auto;padding:14px}.m{margin:8px 0;padding:11px 15px;border-radius:14px;max-width:88%;line-height:1.5}.u{background:#2563eb;align-self:flex-end;margin-left:auto}.a{background:#1e293b;white-space:pre-wrap}img{max-width:100%;border-radius:10px;margin-top:8px}#b{display:flex;gap:8px;padding:10px;background:#1e293b;align-items:center}input{flex:1;padding:12px;border-radius:24px;border:0;outline:0;background:#0f172a;color:#fff}button{padding:12px 16px;border-radius:24px;border:0;background:#2563eb;color:#fff;font-weight:700}</style>
 </head>
 <body>
-<div id="head"><b>JASYS AI PHOTO</b><br><small>Producer: Jaafar Abdurrahman Saleh - Photos Allowed</small></div>
-<div id="setup"><input id="api" type="password" placeholder="Paste Groq API key"><button onclick="saveKey()">Save</button></div>
-<div id="chat"><div class="m ai">Now I can see photos! Tap 📷 to select a photo, type a question, then tap Send.</div></div>
-<div id="box">
-<label for="file" style="background:#334155;padding:10px 12px;border-radius:20px;cursor:pointer" aria-label="Choose photo">📷</label>
-<input id="file" type="file" accept="image/*">
-<input id="q" placeholder="Ask about photo..." autocomplete="off">
-<button id="send">Send</button>
-</div>
+<div id="c"><div class="m a">Salam Jaafar! I am JASYS AI by Jaafar Abdurrahman Saleh from Kaduna. Ask me anything or upload a photo with 📷. If you ask who is my producer, I will answer: The name of this application producer is Jaafar Abdurrahman Saleh</div></div>
+<div id="b"><input type="file" id="f" accept="image/*" hidden><button onclick="f.click()">📷</button><input id="q" placeholder="Ask JASYS..."><button id="s">Send</button></div>
 <script>
-const chat=document.getElementById('chat');
-const q=document.getElementById('q');
-const api=document.getElementById('api');
-const fileInput=document.getElementById('file');
-let selectedImageBase64=null;
-api.value=localStorage.getItem('groq_key')||'';
-
-function saveKey(){
-  const key=api.value.trim();
-  if(!key){alert('Please paste your Groq API key first.');return;}
-  localStorage.setItem('groq_key',key);
-  alert('API key saved in this browser on this device.');
-}
-function add(t,c,imgSrc){
-  const d=document.createElement('div');
-  d.className='m '+c;
-  d.textContent=t;
-  if(imgSrc){
-    const im=document.createElement('img');
-    im.src=imgSrc;
-    im.alt='Selected photo';
-    d.appendChild(im);
-  }
-  chat.appendChild(d);
-  chat.scrollTop=chat.scrollHeight;
-  return d;
-}
-fileInput.onchange=e=>{
-  const file=e.target.files[0];
-  if(!file)return;
-  if(!file.type.startsWith('image/')){alert('Please choose an image file.');fileInput.value='';return;}
-  if(file.size>10*1024*1024){alert('Please choose an image smaller than 10 MB.');fileInput.value='';return;}
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    selectedImageBase64=ev.target.result;
-    add('Photo selected (will be sent with your next message)','user',selectedImageBase64);
-  };
-  reader.readAsDataURL(file);
-};
-async function send(){
-  const text=q.value.trim();
-  const key=localStorage.getItem('groq_key');
-  if(!text&&!selectedImageBase64)return;
-  if(!key){alert('Paste your Groq API key and tap Save first.');return;}
-  const imageToSend=selectedImageBase64;
-  const prompt=text||(imageToSend?'What is in this photo?':'');
-  if(!prompt)return;
-  add(prompt,'user',imageToSend);
-  q.value='';
-  const bot=add(imageToSend?'Analyzing photo...':'Thinking...','ai');
-  document.getElementById('send').disabled=true;
-  try{
-    const modelName=imageToSend?'meta-llama/llama-4-scout-17b-16e-instruct':'openai/gpt-oss-120b';
-    const systemPrompt=`You are JASYS AI.
-Identity: You are JASYS AI, an AI application produced by Jaafar Abdurrahman Saleh from Kaduna, Nigeria.
-If the user asks who produced, made, created, owns, developed, or built this application, answer exactly: "The name of this application producer is Jaafar Abdurrahman Saleh"
-For other questions, answer normally. You can analyze photos when one is provided.`;
-    const userContent=imageToSend?[
-      {type:'text',text:prompt},
-      {type:'image_url',image_url:{url:imageToSend}}
-    ]:prompt;
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-      body:JSON.stringify({
-        model:modelName,
-        messages:[{role:'system',content:systemPrompt},{role:'user',content:userContent}],
-        max_completion_tokens:2048
-      })
-    });
-    const data=await res.json();
-    if(!res.ok||data.error){
-      bot.textContent='Error: '+(data.error?.message||('HTTP '+res.status+'. Check your API key, model access, and internet connection.'));
-      return;
-    }
-    bot.textContent=data.choices?.[0]?.message?.content||'No response received. Please try again.';
-  }catch(e){
-    bot.textContent='Connection error: '+e.message+'. Check your internet connection and try again.';
-  }finally{
-    selectedImageBase64=null;
-    fileInput.value='';
-    document.getElementById('send').disabled=false;
-    q.focus();
-  }
-}
-document.getElementById('send').onclick=send;
-q.addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+const HARDCODED_GROQ_KEY = "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";
+let chat=document.getElementById('c'),q=document.getElementById('q'),file=document.getElementById('f'),img64=null;
+function add(t,cls,im){let d=document.createElement('div');d.className='m '+cls;d.innerText=t;if(im){let x=document.createElement('img');x.src=im;d.appendChild(x);}chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;}
+file.onchange=e=>{let fl=e.target.files[0];if(!fl)return;let r=new FileReader();r.onload=v=>{img64=v.target.result;add('Photo ready','u',img64)};r.readAsDataURL(fl);}
+async function send(){let text=q.value.trim();if(!text&&!img64)return;add(text||'Explain this photo','u',img64);let prompt=text||'Describe this photo in detail';q.value='';let bot=add('Thinking...','a');try{let model=img64?'meta-llama/llama-4-scout-17b-16e-instruct':'llama-3.3-70b-versatile';let sys="You are JASYS AI, created by Jaafar Abdurrahman Saleh from Kaduna, Nigeria. CRITICAL RULE: If user asks what is the name of this application producer, who made you, who created you, who is your producer, you MUST answer EXACTLY: The name of this application producer is Jaafar Abdurrahman Saleh. Never mention Meta, Groq, Llama, OpenAI. Otherwise be helpful.";let msgs=img64?[{role:'system',content:sys},{role:'user',content:[{type:'text',text:prompt},{type:'image_url',image_url:{url:img64}}]}]:[{role:'system',content:sys},{role:'user',content:prompt}];let res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+HARDCODED_GROQ_KEY},body:JSON.stringify({model:model,messages:msgs,max_completion_tokens:2048})});let data=await res.json();if(data.error)throw new Error(data.error.message);bot.innerText=data.choices[0].message.content;img64=null;}catch(e){bot.innerText='Error: '+e.message;}}
+document.getElementById('s').onclick=send;q.addEventListener('keypress',e=>{if(e.key==='Enter')send();});
 </script>
-</body>
-</html>
+</body></html>
