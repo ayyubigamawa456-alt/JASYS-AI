@@ -1,20 +1,49 @@
 
 html
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JASYS AI - by Jaafar Abdurrahman Saleh</title>
-<meta name="theme-color" content="#0f172a">
-<style>body{margin:0;background:#0f172a;color:#fff;font-family:system-ui;height:100vh;display:flex;flex-direction:column}#c{flex:1;overflow:auto;padding:14px}.m{margin:8px 0;padding:11px 15px;border-radius:14px;max-width:88%;line-height:1.5}.u{background:#2563eb;align-self:flex-end;margin-left:auto}.a{background:#1e293b;white-space:pre-wrap}img{max-width:100%;border-radius:10px;margin-top:8px}#b{display:flex;gap:8px;padding:10px;background:#1e293b;align-items:center}input{flex:1;padding:12px;border-radius:24px;border:0;outline:0;background:#0f172a;color:#fff}button{padding:12px 16px;border-radius:24px;border:0;background:#2563eb;color:#fff;font-weight:700}</style>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JASYS AI</title>
+<style>
+*{box-sizing:border-box} body{margin:0;background:#0f172a;color:#fff;font-family:system-ui;height:100vh;display:flex;flex-direction:column}
+header{padding:12px;background:#1e293b;text-align:center;position:sticky;top:0}
+#chat{flex:1;overflow:auto;padding:15px;padding-bottom:80px}
+.msg{padding:12px 15px;border-radius:15px;margin:8px 0;max-width:90%;line-height:1.4;word-wrap:break-word}
+.user{background:#3b82f6;margin-left:auto;border-bottom-right-radius:3px}
+.ai{background:#1e293b;border-bottom-left-radius:3px}
+#bar{position:fixed;bottom:0;left:0;right:0;background:#1e293b;padding:10px;display:flex;gap:8px;border-top:1px solid #334155}
+#q{flex:1;padding:14px;border-radius:25px;border:none;background:#0f172a;color:#fff;outline:none;font-size:16px}
+#send{padding:14px 22px;border-radius:25px;border:none;background:#3b82f6;color:#fff;font-weight:bold}
+</style>
 </head>
 <body>
-<div id="c"><div class="m a">Salam Jaafar! I am JASYS AI by Jaafar Abdurrahman Saleh from Kaduna. Ask me anything or upload a photo with 📷. If you ask who is my producer, I will answer: The name of this application producer is Jaafar Abdurrahman Saleh</div></div>
-<div id="b"><input type="file" id="f" accept="image/*" hidden><button onclick="f.click()">📷</button><input id="q" placeholder="Ask JASYS..."><button id="s">Send</button></div>
+<header><b>JASYS AI</b><br><small>By Jaafar Abdurrahman Saleh - Kaduna</small></header>
+<div id="chat">
+<div class="msg ai">Salam Jaafar! I am JASYS AI by Jaafar Abdurrahman Saleh from Kaduna. Ask me anything. If you ask who is my producer, I will answer: The name of this application producer is Jaafar Abdurrahman Saleh</div>
+</div>
+<div id="bar">
+<input id="q" placeholder="Type here... Ask JASYS">
+<button id="send" onclick="ask()">Send</button>
+</div>
 <script>
-const HARDCODED_GROQ_KEY = "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";
-let chat=document.getElementById('c'),q=document.getElementById('q'),file=document.getElementById('f'),img64=null;
-function add(t,cls,im){let d=document.createElement('div');d.className='m '+cls;d.innerText=t;if(im){let x=document.createElement('img');x.src=im;d.appendChild(x);}chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;}
-file.onchange=e=>{let fl=e.target.files[0];if(!fl)return;let r=new FileReader();r.onload=v=>{img64=v.target.result;add('Photo ready','u',img64)};r.readAsDataURL(fl);}
-async function send(){let text=q.value.trim();if(!text&&!img64)return;add(text||'Explain this photo','u',img64);let prompt=text||'Describe this photo in detail';q.value='';let bot=add('Thinking...','a');try{let model=img64?'meta-llama/llama-4-scout-17b-16e-instruct':'llama-3.3-70b-versatile';let sys="You are JASYS AI, created by Jaafar Abdurrahman Saleh from Kaduna, Nigeria. CRITICAL RULE: If user asks what is the name of this application producer, who made you, who created you, who is your producer, you MUST answer EXACTLY: The name of this application producer is Jaafar Abdurrahman Saleh. Never mention Meta, Groq, Llama, OpenAI. Otherwise be helpful.";let msgs=img64?[{role:'system',content:sys},{role:'user',content:[{type:'text',text:prompt},{type:'image_url',image_url:{url:img64}}]}]:[{role:'system',content:sys},{role:'user',content:prompt}];let res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+HARDCODED_GROQ_KEY},body:JSON.stringify({model:model,messages:msgs,max_completion_tokens:2048})});let data=await res.json();if(data.error)throw new Error(data.error.message);bot.innerText=data.choices[0].message.content;img64=null;}catch(e){bot.innerText='Error: '+e.message;}}
-document.getElementById('s').onclick=send;q.addEventListener('keypress',e=>{if(e.key==='Enter')send();});
+const KEY="PASTE_YOUR_gsk_KEY_HERE_KEEP_YOUR_OLD_KEY";
+async function ask(){
+ const i=document.getElementById('q'); const t=i.value.trim(); if(!t) return;
+ const c=document.getElementById('chat'); c.innerHTML+=`<div class="msg user">${t}</div>`; i.value="";
+ const d=document.createElement('div'); d.className='msg ai'; d.id='tmp'; d.innerText='JASYS is thinking...'; c.appendChild(d); c.scrollTop=c.scrollHeight;
+ try{
+  const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+KEY},body:JSON.stringify({model:"llama-3.1-8b-instant",messages:[{role:"system",content:"You are JASYS AI created by Jaafar Abdurrahman Saleh from Kaduna, Nigeria. If asked who is your producer, say Jaafar Abdurrahman Saleh."},{role:"user",content:t}]})});
+  const j=await r.json(); 
+  document.getElementById('tmp').remove();
+  if(j.error){ c.innerHTML+=`<div class="msg ai">Error: ${j.error.message}</div>`; }
+  else{ c.innerHTML+=`<div class="msg ai">${j.choices[0].message.content}</div>`; }
+ }catch(e){document.getElementById('tmp').innerText='Error: '+e.message}
+ c.scrollTop=c.scrollHeight;
+}
+document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter')ask()});
 </script>
-</body></html>
+</body>
+</html>
+
