@@ -123,3 +123,66 @@ q.addEventListener('keydown',e=>{if(e.key==='Enter')send();});
 </script>
 </body>
 </html>
+html
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JASYS AI</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0f172a;color:#fff;font-family:sans-serif;height:100vh;display:flex;flex-direction:column}
+header{padding:15px;background:#1e293b;text-align:center}
+#chat{flex:1;overflow:auto;padding:15px;padding-bottom:90px}
+.msg{padding:12px;border-radius:12px;margin:8px 0;max-width:90%}
+.user{background:#3b82f6;margin-left:auto}
+.ai{background:#1e293b;white-space:pre-wrap}
+#bar{position:fixed;bottom:0;left:0;right:0;background:#1e293b;padding:10px;display:flex;gap:8px}
+#q{flex:1;padding:14px;border-radius:25px;border:none;background:#0f172a;color:#fff;outline:none}
+button{padding:14px;border-radius:25px;border:none;font-weight:bold}
+#cam{background:#334155;color:#fff}
+#send{background:#3b82f6;color:#fff}
+img.p{max-width:200px;border-radius:10px;display:block;margin-top:5px}
+</style>
+</head><body>
+<header><b>JASYS AI</b><br><small>Jaafar Abdurrahman Saleh - Kaduna</small></header>
+<div id="chat"><div class="msg ai">Salam Jafar! I am JASYS AI by Jaafar Abdurrahman Saleh. Ask text or 📷 photo</div></div>
+<div id="bar">
+<input type="file" id="f" accept="image/*" hidden>
+<button id="cam" onclick="f.click()">📷</button>
+<input id="q" placeholder="Type here...">
+<button id="send" onclick="go()">Send</button>
+</div>
+<script>
+const KEY="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";
+let img=null;
+const f=document.getElementById('f'); const chat=document.getElementById('chat'); const q=document.getElementById('q');
+f.onchange=e=>{
+ const file=e.target.files[0]; if(!file)return;
+ const rd=new FileReader();
+ rd.onload=x=>{ img=x.target.result; chat.innerHTML+=`<div class="msg user"><img class="p" src="${img}"></div>`; chat.scrollTop=chat.scrollHeight; };
+ rd.readAsDataURL(file);
+};
+async function go(){
+ let t=q.value.trim(); if(!t && !img)return; if(!t) t="Describe this image in detail";
+ chat.innerHTML+=`<div class="msg user">${t}</div>`; q.value="";
+ let d=document.createElement('div'); d.className='msg ai'; d.innerText='Thinking...'; chat.appendChild(d); chat.scrollTop=chat.scrollHeight;
+ let modelsToTry = img ? ["meta-llama/llama-4-maverick-17b-128e-instruct","llama-3.2-11b-vision-preview","llama-3.2-90b-vision-preview"] : ["openai/gpt-oss-20b"];
+ try{
+  for(let m of modelsToTry){
+   try{
+    let msgs=[{role:"system",content:"You are JASYS AI by Jaafar Abdurrahman Saleh, Kaduna. If asked who is producer say: The name of this application producer is Jaafar Abdurrahman Saleh"}];
+    if(img){ msgs.push({role:"user",content:[{type:"text",text:t},{type:"image_url",image_url:{url:img}}]}); } else { msgs.push({role:"user",content:t}); }
+    let r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+KEY},body:JSON.stringify({model:m,messages:msgs})});
+    let j=await r.json();
+    if(j.error){ if(j.error.message.includes("does not exist") || j.error.message.includes("model")) continue; else throw new Error(j.error.message); }
+    d.remove(); chat.innerHTML+=`<div class="msg ai">${j.choices[0].message.content}</div>`; img=null; chat.scrollTop=chat.scrollHeight; return;
+   }catch(e){ continue; }
+  }
+  d.innerText="Error: No model worked. Try new API key.";
+ }catch(err){ d.innerText="Error: "+err.message; }
+ chat.scrollTop=chat.scrollHeight;
+}
+q.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+</script>
+</body></html>
+
